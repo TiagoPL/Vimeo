@@ -1,0 +1,9 @@
+#!/bin/sh
+
+TOKEN='x'
+CLIENT_ID='y'
+SECRET='z'
+
+FOLDER_ID=0
+
+python metadata.py -t "$TOKEN" -s "$SECRET" -c "$CLIENT_ID" $FOLDER_ID

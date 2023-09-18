@@ -1,0 +1,7 @@
+#!/bin/sh
+
+export VIMEO_TOKEN='x'
+export VIMEO_CLIENT_ID='y'
+export VIMEO_SECRET='z'
+
+python app.py

@@ -1,0 +1,36 @@
+stages:
+- build_and_push
+- deploy_gke
+
+build_and_push:
+  stage: build_and_push
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${HARBOR_HUB_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${HARBOR_HUB_USER}" "${HARBOR_HUB_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${HARBOR_HUB_IMAGE_VIMEO_METADATA}:${CI_COMMIT_TAG}"
+  only:
+    - master
+
+deploy_gke:
+ stage: deploy_gke
+ image: google/cloud-sdk
+ script:
+   - echo "$SERVICE_ACCOUNT_KEY" > key.json
+   - gcloud auth activate-service-account --key-file=key.json
+   - gcloud config set project serene-courier-198218
+   - gcloud config set container/cluster gke-02-cluster
+   - gcloud config set compute/zone us-east1 
+   - gcloud container clusters get-credentials gke-02-cluster --region us-central1 --project serene-courier-198218
+   - kubectl apply -f manifest/secrets.yml
+   - kubectl apply -f manifest/service.yml
+   - kubectl apply -f manifest/deployment.yml
+   - kubectl apply -f manifest/ingress.yml
+ only:
+    - master
